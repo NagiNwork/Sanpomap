@@ -1,35 +1,67 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useCallback, useRef, useState } from "react";
+import { GoogleMap, useLoadScript } from "@react-google-maps/api";
+// 地図のデザインを指定することができます。
+// デザインは https://snazzymaps.com からインポートすることができます。
 
-function App() {
-  const [count, setCount] = useState(0)
+const libraries = ["places"];
+const mapContainerStyle = {
+  height: "60vh",
+  width: "100%",
+};
+// 地図の大きさを指定します。
+
+const options = {
+  disableDefaultUI: true,
+  // デフォルトUI（衛星写真オプションなど）をキャンセルします。
+  zoomControl: true,
+};
+
+function InputTask() {
+  const[Test, SetTest] = useState("test");
+
+  function setText(){
+    SetTest("set");
+  }
+
+  return (
+    <button onClick={() => setText()}>{Test}</button>
+  );
+}
+
+export default function GoogleMapComponent() {
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: import.meta.env.VITE_APP_googleMapsApiKey,
+    // ここにAPIキーを入力します。今回は.envに保存しています。
+    libraries,
+  });
+
+  const mapRef = useRef();
+  const onMapLoad = useCallback((map) => {
+    mapRef.current = map;
+  }, []);
+  //API読み込み後に再レンダーを引き起こさないため、useStateを使わず、useRefとuseCallbackを使っています。
+ 
+  if (loadError) return "Error";
+  if (!isLoaded) return "Loading...";
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <InputTask />
+      <GoogleMap
+        id="map"
+        mapContainerStyle={mapContainerStyle}
+        zoom={12}
+        // デフォルトズーム倍率を指定します。
+        center={{
+          lat: 43.048225,
+          lng: 141.49701,
+        }}
+        // 札幌周辺にデフォルトのセンターを指定しました。
+        options={options}
+        onLoad={onMapLoad}
+      >
+      </GoogleMap>
     </>
-  )
+  );
 }
 
-export default App
